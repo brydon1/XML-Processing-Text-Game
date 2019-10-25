@@ -724,7 +724,7 @@ def game():
         screen.printText("> ")
         command = screen.getText().lower()
         applyRules(screen,player,command,myWorld) # User inputs should be lower case
-    screen.printText("Thanks for playing! ")
+    screen.printText("Thanks for playing!\n")
 
 game()
 
