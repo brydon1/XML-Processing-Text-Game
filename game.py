@@ -1,5 +1,197 @@
 import xml.etree.ElementTree as ET
 
+# Finish integrating game into program
+
+
+class game:
+    def __init__(self,xmlFile):
+        self.ui = UI()
+
+        # CHANGE to self.player = player()
+        self.user = user()
+        self.world = world(xmlFile)
+
+    def getUi(self):
+        return self.ui
+    def getUser(self):
+        return self.user
+    def getWorld(self):
+        return self.world
+
+    # Returns true if overrides command
+    def objectTriggers()
+
+
+    # Ask skon about suggestions for condensing code
+    # Try condensing last three parts into single, repeated, routine
+    def checkTriggers(command):
+        commandOverwritten = False
+        roomInventory = self.world.getRoomMap()[self.world.getLocation()].getInventory()
+
+        # Check room triggers
+        for trigger in roomInventory.getTriggers():
+            # Must check if command overwritten before activating trigger
+            # initiateTrigger sets self.used = True, so if self.type == "single",
+            # then conditionsMet always returns false when trigger initiated first
+            if trigger.overridesCommand(self.world,command,self.user):
+                commandOverwritten = True;  
+            if trigger.conditionsMet(self.world,command,self.user):
+                trigger.initiateTrigger(self.world,self.ui)
+
+        # Check room item triggers        
+        for itemName in roomInventory.getItems():
+            item = self.world.getItemMap()[itemName]
+            for trigger in item.getTriggers():
+                if trigger.overridesCommand(self.world,command,self.user):
+                    commandOverwritten = True;
+                if trigger.conditionsMet(self.world,command,self.user):
+                    trigger.initiateTrigger(self.world,self.ui)
+                
+        # Check room container triggers      
+        for containerName in roomInventory.getContainers():
+            container = self.world.getContainerMap()[containerName]
+            for trigger in container.getTriggers():
+                if trigger.overridesCommand(self.world,command,self.user):
+                    commandOverwritten = True;
+                if trigger.conditionsMet(self.world,command,self.user):
+                    trigger.initiateTrigger(self.world,self.ui)
+                
+        # Check room creature triggers 
+        for creatureName in roomInventory.getCreatures():
+            creature = self.world.getCreatureMap()[creatureName]
+            for trigger in creature.getTriggers():
+                if trigger.overridesCommand(self.world,command,self.user):
+                    commandOverwritten = True;
+                if trigger.conditionsMet(self.world,command,self.user):
+                    trigger.initiateTrigger(self.world,self.ui)
+
+        return commandOverwritten
+
+
+    # REREAD CODE TO ensure no errors
+    # Turn into member function of game class
+    # Changes it to applyRules(command)
+    def applyRules(command):
+        parsed = command.split()
+        # See if command overridden
+        if self.checkTriggers(command):
+            return;
+        
+        # Check Inventory
+        if command == "i": 
+            self.user.checkInventory(self.ui)
+            
+        # Change rooms
+        elif (command in ['n','s','e','w']):
+            oldLocation = self.world.getLocation()
+            self.world.changeLocation(command,self.ui)
+            if oldLocation == self.world.getLocation():
+                self.ui.printText("Can't go that way\n")
+                
+        # Command has 2 words
+        elif len(parsed) == 2:
+            firstWord,secondWord = parsed[0],parsed[1]
+
+            # If secondWord is an item
+            if secondWord in self.world.getItemMap():
+                item = self.world.getItemMap()[secondWord]
+
+                # Take item
+                if firstWord == 'take': # put item in inventory
+                    self.user.takeItem(item.getName())
+                    self.ui.printText(item.getName() + " added to inventory\n")
+
+                # Read item
+                elif firstWord == 'read':
+                    if item.getName() in self.user.getInventory():
+                        item.read(self.ui)                    
+                    else:
+                        self.ui.printText(item.getName() + " not in inventory\n")
+
+                # Drop item
+                elif firstWord == 'drop':
+                    roomInventory = self.world.getRoomMap()[self.world.getLocation()].getInventory()
+                    roomInventory.addItem(item.getName())
+                    self.user.dropItem(item.getName())
+                    self.ui.printText(item.getName() + " dropped\n")
+                    
+                else:
+                    self.ui.printText("Invalid command\n")
+            
+            elif firstWord == 'open':
+                roomType = self.world.getRoomMap()[self.world.getLocation()].getType()
+                roomContainers = self.world.getRoomMap()[self.world.getLocation()].getInventory().getContainers()
+
+                # Open exit
+                if secondWord == "exit" and roomType == "exit":
+                    self.ui.printText("Game Over\n")
+            
+                # Open container
+                elif secondWord in roomContainers:
+                    container = self.world.getContainerMap()[secondWord]
+                    container.open(self.ui)
+                    
+                else:
+                    self.ui.printText("Invalid command\n")
+            else:
+                self.ui.printText("Invalid command\n")
+                    
+        elif len(parsed) == 3:
+            firstWord,secondWord,thirdWord = parsed[0],parsed[1],parsed[2]
+
+            # Turn on item
+            if firstWord == "turn" and secondWord == "on":
+                if thirdWord in self.user.getInventory():
+                    item = self.world.getItemMap()[thirdWord] 
+                    self.ui.printText("You activate the " + item.getName() + "\n")
+                    item.turnon(self.world,self.ui)
+                    
+                else:
+                    self.ui.printText(thirdWord + " not in inventory\n")
+            else:
+                self.ui.printText("Invalid command\n")
+                
+        elif len(parsed) == 4:
+            firstWord,secondWord,thirdWord,fourthWord = parsed[0],parsed[1],parsed[2],parsed[3]
+            
+            # Put item in container
+            if firstWord == "put" and thirdWord == "in":
+                if secondWord in self.user.getInventory():
+                    itemName = secondWord
+                    roomContainers = self.world.getRoomMap()[self.world.getLocation()].getInventory().getContainers()
+                    if fourthWord in roomContainers:
+                        container = self.world.getContainerMap()[fourthWord]
+                        if container.canAccept(itemName):
+                            container.addItem(itemName)
+                            self.user.dropItem(itemName) # Edit function; HOW???
+                            self.ui.printText("Item " + itemName + " added to " + container.getName() + "\n")
+                        else:
+                            self.ui.printText(container.getName() + " status: " + container.getStatus())
+                    else:
+                        self.ui.printText(fourthWord + " not in current room\n")
+                else:
+                    self.ui.printText(secondWord + " not in inventory\n")
+                    
+            # Attack creature with item
+            elif firstWord == "attack" and thirdWord == "with":
+                roomCreatures = self.world.getRoomMap()[self.world.getLocation()].getInventory().getCreatures()
+                if secondWord in roomCreatures:
+                    creature = self.world.getCreatureMap()[secondWord]
+                    if fourthWord in self.user.getInventory():
+                        itemName = fourthWord
+                        creature.doAttack(self.world,command,self.user,itemName,self.ui)
+                    else:
+                        self.ui.printText(fourthWord + " not in inventory\n")
+                else:
+                    self.ui.printText(secondWord + " not in current room\n")
+            else:
+                self.ui.printText("Invalid command\n")
+        else:
+            self.ui.printText("Invalid command\n")
+            
+        # Check triggers again
+        self.checkTriggers("")
+        
 class UI:
     def getText(self):
         return input()
@@ -7,6 +199,8 @@ class UI:
     def printText(self,text):
         print(text, end = "")
 
+
+# CHANGE class name to player
 class user:
     def __init__(self):
         self.inventory = []
@@ -70,7 +264,6 @@ class world:
         return self.containerMap;
     def getLocation(self):
         return self.location;
-
 
     def changeLocation(self,command,ui):
         roomBorders = self.getRoomMap()[self.getLocation()].getInventory().getBorders()
@@ -378,7 +571,7 @@ class creature:
             if itemName == vulnerability and self.attack.conditionsMet(world,"",user):
                 self.attack.initiateTrigger(world,ui)
         if itemName not in self.vulnerabilities:
-            ui.printText(creature + " unfazed\n")
+            ui.printText(self.name + " unfazed\n")
 
 ### Triggers and Conditions ########################################################
 
@@ -386,7 +579,7 @@ class creature:
 class trigger:
     def __init__(self,node):
         self.type = "single"
-        self.command = ""
+        self.commands = [] ## EDITED RECENTLY
         self.used = False
         self.conditions = []
         self.actions = []
@@ -397,7 +590,7 @@ class trigger:
             if child.tag == "type":
                 self.type = child.text
             elif child.tag == "command":
-                self.command = child.text
+                self.commands.append(child.text)
             elif child.tag == "print":
                 self.prints.append(child.text)
 
@@ -417,29 +610,43 @@ class trigger:
         return self.type
     def getActions(self):
         return self.actions
-    def getCommand(self):
-        return self.command
+    def getCommands(self):
+        return self.commands
     def getConditions(self):
         return self.conditions
 
+    # Returns true if all conditions in trigger are met
+
+
+    # CHANGE to conditionsMet(self,game,userCommand)
     def conditionsMet(self,world,userCommand,user):
+        # self.used set equal to true right after trigger activated
+        if self.used and self.type == "single":
+            return False
         for condition in self.conditions:
-            if not condition.isMet(world,user) or (self.used and self.type == "single"):
+            if not condition.isMet(world,user):
                 return False
-            else:
-                if self.command != "":
-                    if userCommand != self.command:
-                        return False
+            
+        if len(self.commands) == 0: # If no command conditions in trigger
+            return True
+        else:
+            for command in self.commands:
+                if userCommand == command: # If a matching command entered
+                    return True
+            return False # if there are command conditions and none of them met
         return True
 
-    # maybe include in above function
+    # Returns True if trigger command overrides user command
+    # CHANGE to overridesCommand(self,game,userCommand)
     def overridesCommand(self,world,userCommand,user):
-        if self.command != "":
-            if self.command == userCommand and self.conditionsMet(world,userCommand,user): 
-                return True
+        if len(self.commands) != 0:
+            for command in self.commands:
+                if command == userCommand and self.conditionsMet(world,userCommand,user): 
+                    return True
         return False
     
-    # Maybe bad function
+    # REVIEW ME!!!
+    # CHANGE to initiateTrigger(self,game)
     def initiateTrigger(self,world,ui):
         self.used = True
         for theAction in self.actions:
@@ -461,6 +668,8 @@ class condition:
             return world.getItemMap()
         elif self.object in world.getContainerMap():
             return world.getContainerMap()
+        elif self.object in world.getCreatureMap():
+            return world.getCreatureMap()
 
 class owner(condition):
     def __init__(self,node):
@@ -477,7 +686,11 @@ class owner(condition):
         else:
             ownerInventory = self.getOwnerItems(world)
 
+        #print(self.object in ownerInventory, self.has)
+        #print(self.object,self.owner)
+
         if ((self.object in ownerInventory) == self.has):
+            #print("Cond MET")
             return True
         return False
 
@@ -551,48 +764,59 @@ class action:
         elif self.owner in world.getRoomMap():
             return world.getRoomMap()[self.owner].getInventory().getItems()
 
+
+
+
+# Maybe turn into member function in world class
 # Returns True if command overwritten, False otherwise
+# Changes to checkTriggers(command)
 def checkTriggers(command,world,user,ui):
     commandOverwritten = False
     roomInventory = world.getRoomMap()[world.getLocation()].getInventory()
 
     # Check room triggers
     for trigger in roomInventory.getTriggers():
-        if trigger.conditionsMet(world,command,user):
-            trigger.initiateTrigger(world,ui)
+        # Must check if command overwritten before activating trigger
+        # initiateTrigger sets self.used = True, so if self.type == "single",
+        # then conditionsMet always returns false when trigger initiated first
         if trigger.overridesCommand(world,command,user):
-            commandOverwritten = True;            
-            
+            #print("command overwritten")
+            commandOverwritten = True;  
+        if trigger.conditionsMet(world,command,user):
+            #print("conditions met")
+            trigger.initiateTrigger(world,ui)
+
     # Check room item triggers        
     for itemName in roomInventory.getItems():
         item = world.getItemMap()[itemName]
         for trigger in item.getTriggers():
-            if trigger.conditionsMet(world,command,user):
-                trigger.initiateTrigger(world,ui)
             if trigger.overridesCommand(world,command,user):
                 commandOverwritten = True;
-                
-
+            if trigger.conditionsMet(world,command,user):
+                trigger.initiateTrigger(world,ui)
+            
     # Check room container triggers      
     for containerName in roomInventory.getContainers():
         container = world.getContainerMap()[containerName]
         for trigger in container.getTriggers():
-            if trigger.conditionsMet(world,command,user):
-                trigger.initiateTrigger(world,ui)
             if trigger.overridesCommand(world,command,user):
                 commandOverwritten = True;
-
+            if trigger.conditionsMet(world,command,user):
+                trigger.initiateTrigger(world,ui)
+            
     # Check room creature triggers 
     for creatureName in roomInventory.getCreatures():
         creature = world.getCreatureMap()[creatureName]
         for trigger in creature.getTriggers():
-            if trigger.conditionsMet(world,command,user):
-                trigger.initiateTrigger(world,ui)
             if trigger.overridesCommand(world,command,user):
                 commandOverwritten = True;
-                
+            if trigger.conditionsMet(world,command,user):
+                trigger.initiateTrigger(world,ui)
+
     return commandOverwritten
 
+# Turn into member function of game class
+# Changes it to applyRules(command)
 def applyRules(ui,player,command,world):
     parsed = command.split()
     # See if command overridden
@@ -669,7 +893,7 @@ def applyRules(ui,player,command,world):
                 item.turnon(world,ui)
                 
             else:
-                ui.printText(item.getName() + " not in inventory\n")
+                ui.printText(thirdWord + " not in inventory\n")
         else:
             ui.printText("Invalid command\n")
             
@@ -712,10 +936,10 @@ def applyRules(ui,player,command,world):
         ui.printText("Invalid command\n")
         
     # Check triggers again
-    checkTriggers(command,world,player,ui)
+    checkTriggers("",world,player,ui)
 
-def game():
-    myWorld = world("exGame.xml")
+def runGame():
+    myWorld = world("game.xml")
     screen = UI()
     player = user()
 
@@ -726,7 +950,21 @@ def game():
         applyRules(screen,player,command,myWorld) # User inputs should be lower case
     screen.printText("Thanks for playing!\n")
 
-game()
+runGame()
+
+
+# Ultimately use this one
+def newGame():
+    kidnapGame = game("game.xml")
+    kidnapGame.getWorld().getRoomMap()[theGame.getWorld().getLocation()].describe(screen)
+
+    while(kidnapGame.getWorld().getRoomMap()[myWorld.getLocation()].getType() != "exit"):
+        kidnapGame.getUi().printText("> ")
+        command = kidnapGame.getUi().getText().lower()
+        
+        # applyRules as a member function of game class
+        kidnapGame.applyRules(command) # User inputs should be lower case
+    kidnapGame.getUi().printText("Thanks for playing!\n")
 
 
 
