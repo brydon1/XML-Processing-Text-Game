@@ -1,12 +1,834 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <map>
-	<room>
-		<name>Entrance</name>
-		<border>
-			<direction>north</direction>
-		</border>
-	</room>
-	<room>
-		<name></name>
-	</room>
+
+  <!-- ROOMS -->
+
+  <!--
+  <room>
+    <name>Basement</name>
+
+    <description>Dazed with a bad headache, you awake to find yourself tied to a chair by the south wall of a concrete basement. Thanks to the light creeping in from a small, half-window on the west side of the room, you can make out a collection of tools on the east wall, and a staircase to the north. Perhaps you could try using one of those tools to free yourself...</description>
+
+    <item>saw</item>
+    <creature>rope</creature>
+
+    <trigger>
+      <type>permanent</type>
+      <command>n</command>
+
+      <condition>
+        <object>rope</object>
+        <status>tied</status>
+      </condition>
+      
+      <print>You can't go anywhere until you free yourself from this rope.</print>
+    </trigger>
+
+    <border>
+      <name>Kitchen</name>
+      <direction>north</direction>
+    </border>
+  </room>
+
+  <room>
+    <name>Kitchen</name>
+    <description>You emerge from the basement into a small kitchen. You see a locked door to the west and a pile of dirty dishes to the north. Perhaps there is something pointy hidden in the pile that could be used to pick the lock.</description>
+
+    <container>lock</container>
+    <container>cabinet</container>
+    <creature>cockroaches</creature>
+
+    <trigger>
+      <type>single</type>
+      <command>n</command>
+
+      <condition>
+        <has>no</has>
+        <object>knife</object>
+        <owner>inventory</owner>
+      </condition>
+      
+      <print>Picking through the dishes, you notice a small knife jammed in the pile.</print>
+      <action>Add knife to Kitchen</action>
+    </trigger>
+
+    <trigger>
+      <type>permanent</type>
+      <command>w</command>
+
+      <condition>
+        <has>no</has>
+        <object>knife</object>
+        <owner>lock</owner>
+      </condition>
+      
+      <print>This door is locked</print>
+    </trigger>
+
+    <trigger>
+      <type>permanent</type>
+      <command>put knife in lock</command>
+
+      <condition>
+        <object>cockroaches</object>
+        <status>alive</status>
+      </condition>
+      
+      <print>You cannot leave until you kill the cockroaches.</print>
+    </trigger>
+
+    <trigger>
+      <type>permanent</type>
+      <command>s</command>
+      <print>It would probably be best to keep moving forward.</print>
+    </trigger>
+
+    <border>
+      <name>Basement</name>
+      <direction>south</direction>
+    </border>
+    <border>
+      <name>LivingRoom</name>
+      <direction>west</direction>
+    </border>
+  </room>
+-->
+
+  <room>
+    <name>LivingRoom</name>
+    <!-- Maybe remove comments about notes -->
+    <description>You find yourself in the living room. There is a coffee table in the center of the room, cluttered with miscellaneous objects. There is a see through sliding door to the south which leads to the backyard and a staircase to the north, going up to the next floor.</description>
+
+    <item>flashlight</item>
+
+    <!-- order of triggers relevant to program-->
+    <trigger>
+      <type>permanent</type>
+      <command>s</command>
+
+      <condition>
+        <object>dog</object>
+        <status>barking</status>
+      </condition>
+
+      <condition>
+        <has>no</has>
+        <object>rubber-duck</object>
+        <owner>inventory</owner>
+      </condition>
+      
+      <print>It is not safe to go outside with that dog all riled up.</print>
+    </trigger>
+
+    <trigger>
+      <type>single</type>
+      <command>s</command>
+
+      <condition>
+        <object>dog</object>
+        <status>quiet</status>
+      </condition>
+      
+      <print>As you begin to peek out the clear glass door, you notice a scary-looking dog, roaming freely through the backyard. It catches sight of you and begins jumping on the door and barking maniacally.</print>
+      <action>Update dog to barking</action>
+    </trigger>
+
+    <trigger>
+      <type>permanent</type>
+      <command>e</command>
+
+      <condition>
+        <has>no</has>
+        <object>bleach</object>
+        <owner>cabinet</owner>
+      </condition>
+      <condition>
+        <has>no</has>
+        <object>bleach</object>
+        <owner>Kitchen</owner>
+      </condition>
+
+      <print>It would probably be best to keep moving forward.</print>
+    </trigger> 
+
+    <border>
+      <name>Backyard</name>
+      <direction>south</direction>
+    </border>
+    <border>
+      <name>Hallway</name>
+      <direction>north</direction>
+    </border>
+    <border>
+      <name>Kitchen</name>
+      <direction>east</direction>
+    </border>
+  </room>
+
+
+  <room>
+    <name>Backyard</name>
+    <description>There is a tall wooden fence surrounding the backyard and a shed to the east.</description>
+
+    <trigger>
+      <type>permanent</type>
+      <command>s</command>
+
+      <condition>
+        <object>dog</object>
+        <status>barking</status>
+      </condition>
+
+      <print>You're not going anywhere until you get this dog under control. Maybe he likes toys...</print>
+    </trigger> 
+
+    <trigger>
+      <type>permanent</type>
+      <command>open shed</command>
+
+      <condition>
+        <object>dog</object>
+        <status>barking</status>
+      </condition>
+
+      <print>You can't get to the shed until you get this dog under control. Maybe he likes toys...</print>
+    </trigger> 
+
+    <trigger>
+      <type>permanent</type>
+      <command>s</command>
+
+      <condition>
+        <object>dog</object>
+        <status>calm</status>
+      </condition>
+
+      <condition>
+        <has>no</has>
+        <object>ladder</object>
+        <owner>backyard</owner>
+      </condition>
+
+      <print>This fence is too high to jump. Maybe there is something in the shed that could help you make it over...</print>
+    </trigger> 
+
+    <container>shed</container>
+    <creature>dog</creature>
+
+    <border>
+      <name>LivingRoom</name>
+      <direction>north</direction>
+    </border>
+
+    <border>
+      <name>woods</name>
+      <direction>south</direction>
+    </border>
+
+  </room>
+
+  <room>
+    <name>Hallway</name>
+    <description>You enter a narrow hallway. There is one door to the west, another door to the east, and a rectangular segment on the ceiling towards the north. There is a piece of string hanging down from the rectangle.</description>
+
+    <trigger>
+      <type>permanent</type>
+      <command>n</command>
+
+      <condition>
+        <has>no</has>
+        <object>step-stool</object>
+        <owner>Hallway</owner>
+      </condition>
+      
+      <print>Reaching up to pull the string, you realize it is just a few inches too high. If only you had a step-stool...</print>
+    </trigger>
+
+    <trigger>
+      <type>permanent</type>
+      <command>w</command>
+
+      <condition>
+        <object>man</object>
+        <status>bathroom</status>
+      </condition>
+      
+      <print>This door is locked. Also, it sounds like someone might be in there...</print>
+    </trigger>
+
+    <trigger>
+      <type>single</type>
+      <command>e</command>
+
+      <condition>
+        <object>girl</object>
+        <status>free</status>
+      </condition>
+
+      <print>The girl follows you into the bedroom.</print>
+      <action>Delete girl</action>
+      <action>Add girl to Bedroom</action>
+      <action>Update girl to bedroom</action>
+    </trigger>
+
+    <border>
+      <name>LivingRoom</name>
+      <direction>south</direction>
+    </border>
+
+    <border>
+      <name>Bathroom</name>
+      <direction>west</direction>
+    </border>
+
+    <border>
+      <name>Bedroom</name>
+      <direction>east</direction>
+    </border>
+
+    <border>
+      <name>Attic</name>
+      <direction>north</direction>
+    </border>
+
+  </room>
+
+  <room>
+    <name>Bedroom</name>
+    <description>You enter a large bedroom. There is a closet on the south side of the room and a dresser with some drawers to the north. The bedsheets are disheveled, as though someone had recently been there.</description>
+
+    <item>step-stool</item>
+    <item>cell-phone</item>
+    <container>drawer</container>
+
+  <trigger>
+      <type>permanent</type>
+      <command>w</command>
+
+      <condition>
+        <object>man</object>
+        <status>bedroom</status>
+      </condition>
+      
+      <print>The man is blocking your way out.</print>
+    </trigger>
+
+    <border>
+      <name>Hallway</name>
+      <direction>west</direction>
+    </border>
+
+    <border>
+      <name>Closet</name>
+      <direction>south</direction>
+    </border>
+
+  </room>
+
+  <room>
+    <name>Attic</name>
+    <status>dark</status>
+    <description>This place could use some light.</description>
+
+    <trigger>
+      <type>single</type>
+
+      <condition>
+        <object>flashlight</object>
+        <status>on</status>
+      </condition>
+      
+      <print>On the east side of the room, you notice a young girl tied to a chair. She looks at you with a pair of longing eyes and whispers "Help me," with the raspy voice of someone who hasn't had an ounce to drink in days.</print>
+      <action>Add rope to Attic</action>
+    </trigger>
+
+    <!--<creature>bat</creature>-->
+    <creature>girl</creature>
+    <creature>rope</creature>
+
+    <!-- Ultimately, they survive by escaping through the backyard; they learn this looking through attic window -->
+
+    <border>
+      <name>Hallway</name>
+      <direction>south</direction>
+    </border>
+
+  </room>
+
+  <room>
+    <name>Closet</name>
+    <description>This closet is cramped and full of clothing, with a shelf up top that is covered with books.</description>
+
+    <item>dictionary</item>
+
+    <border>
+      <name>Bedroom</name>
+      <direction>north</direction>
+    </border>
+
+  </room>
+
+  <room>
+    <name>Bathroom</name>
+    <description>The air reeks of human waste as though the room had not been cleaned in years. Fighting through the smell, you notice a bathtub to the south side of the room with a bag leaning next to it. Wonder what is in there...</description>
+
+    <container>bag</container>
+    <creature>man</creature>
+
+    <border>
+      <name>Hallway</name>
+      <direction>east</direction>
+    </border>
+
+  </room>
+
+  <room>
+    <name>Woods</name>
+    <type>exit</type>
+    <description>You climb the ladder, mount the fence, and bolt towards a path in the woods. Eventually, you run into a kind hiker, who points you in the direction of civilization. Finally, you are free! </description>
+
+    <border>
+      <name>Backyard</name>
+      <direction>north</direction>
+    </border>
+
+  </room>
+
+
+  <item>
+    <name>saw</name>
+    <writing>turn on for more power</writing>
+    <status>off</status>
+
+    <trigger>
+      <type>permanent</type>
+      <command>attack rope with saw</command>
+      <condition>
+        <has>yes</has>
+        <object>rope</object>
+        <owner>Attic</owner>
+      </condition>
+
+      <print>It seems the saw has run out of power. It is useless now.</print>
+    </trigger>
+
+    <turnon>
+      <print>the saw blade has begun to spin rapidly</print>
+      <action>Update saw to on</action>
+    </turnon>
+  </item>
+
+  <item>
+    <name>knife</name>
+    <writing>just thin enough for lock picking</writing>
+  </item>
+
+  <item>
+    <name>insecticide</name>
+    <writing>best in the market for killing cockroaches</writing>
+  </item>
+
+  <item>
+    <name>bleach</name>
+    <writing>keep away from eyes</writing>
+  </item>
+
+  <item>
+    <name>step-stool</name>
+    <writing>who couldn't use a few extra inches?</writing>
+  </item>
+
+
+
+
+
+
+
+
+  <!-- After you turn it on, it becomes a liability because it will reveal your location by ringing; honestly 
+       just taking the phone is a trap because the man wants it back -->
+
+  <item>
+    <name>cell-phone</name>
+    <status>noTries</status>
+    <writing>My owner is very good at keeping his passocode a secret.</writing>
+    <trigger>
+      <type>permanent</type>
+      <command>turn on cell-phone</command>
+
+      <condition>
+        <has>yes</has>
+        <object>cell-phone</object>
+        <owner>inventory</owner>
+      </condition>
+
+      <print>This phone needs a passcode.</print>
+    </trigger>
+  </item>
+
+  <item>
+    <name>batteries</name>
+    <writing>perfect size for a flashlight</writing>
+  </item>
+
+
+
+
+<!-- Issues with this item; first trigger not activating-->
+
+
+
+  <item>
+    <name>flashlight</name>
+    <writing>May require batteries before use</writing>
+    <status>dead</status>
+
+    <trigger>
+      <type>permanent</type>
+      <command>turn on flashlight</command>
+
+      <condition>
+        <object>flashlight</object>
+        <status>dead</status>
+      </condition>
+
+      <condition>
+        <has>yes</has>
+        <object>flashlight</object>
+        <owner>inventory</owner>
+      </condition>
+
+      <print>This flashlight needs some batteries.</print>
+    </trigger>
+
+    <trigger>
+      <type>single</type>
+      <condition>
+        <has>yes</has>
+        <object>batteries</object>
+        <owner>inventory</owner>
+      </condition>
+      <condition>
+        <has>yes</has>
+        <object>flashlight</object>
+        <owner>inventory</owner>
+      </condition>
+
+      <print>These batteries fit perfectly into this flashlight. Perhaps it will turn on now.</print>
+      <action>Update flashlight to alive</action>
+    </trigger>
+
+    <turnon>
+      <print>The flashlight clicks on, eminating a vibrant beam of light.</print>
+      <action>Update flashlight to on</action>
+    </turnon>
+  </item>
+
+  <item>
+    <name>dictionary</name>
+    <writing>biggest book of knowledge on this side of the western front</writing>
+  </item>
+
+  <item>
+    <name>rubber-duck</name>
+    <writing>everyone's favorite bathtime buddy makes a nice squeaky toy too</writing>
+  </item>
+
+  <item>
+    <name>pocket-knife</name>
+    <writing>sharper than you'd expect for a pocket knife</writing>
+  </item>
+
+  <item>
+    <name>ladder</name>
+    <writing>perfect for getting over the tallest of fences</writing>
+  </item>
+
+
+
+<!-- Should not have knife after opening lock!! -->
+  <container>
+    <name>lock</name>
+    <status>locked</status>
+    <accept>knife</accept>
+    <trigger>
+      <condition>
+        <has>yes</has>
+        <object>knife</object>
+        <owner>lock</owner>
+      </condition>
+
+      <print>After a few jiggles of the lock, you hear a click and the door opens</print>
+      <action>Update lock to unlocked</action>
+    </trigger>
+  </container>
+
+  <container>
+    <name>cabinet</name>
+    <item>insecticide</item>
+    <item>bleach</item>
+  </container>
+
+  <container>
+    <name>drawer</name>
+    <item>batteries</item>
+    <item>pocket-knife</item>
+  </container>
+
+  <container>
+    <name>bag</name>
+    <item>rubber-duck</item>
+  </container>
+
+  <container>
+    <name>shed</name>
+    <item>ladder</item>
+  </container>
+
+  <creature>
+    <name>rope</name>
+    <status>tied</status>
+    <vulnerability>saw</vulnerability>
+    <vulnerability>pocket-knife</vulnerability>
+
+    <trigger>
+      <type>permanent</type>
+      <command>attack rope with saw</command>
+      <condition>
+        <object>saw</object>
+        <status>off</status>
+      </condition>
+
+      <print>You are not strong enough to cut through the rope with the saw blade while it is off.</print>
+    </trigger>
+
+    <trigger>
+      <type>permanent</type>
+      <command>attack rope with knife</command>
+      <print>This kitchen knife is far too dull to do any damage.</print>
+    </trigger>
+
+    <trigger>
+      <type>single</type>
+      <command>attack rope with pocket-knife</command>
+      <condition>
+        <has>yes</has>
+        <object>pocket-knife</object>
+        <owner>inventory</owner>
+      </condition>
+
+      <print>The pocket-knife easily cuts through the rope, freeing the young girl. </print>
+      <action>Delete rope</action>
+      <action>Update girl to free</action>
+    </trigger>
+
+
+
+
+    <attack>
+      <condition>
+        <object>saw</object>
+        <status>on</status>
+      </condition>
+
+      <condition>
+        <has>yes</has>
+        <object>saw</object>
+        <owner>inventory</owner>
+      </condition>
+
+      <print>The rope is no match for this power saw. You are now free to move. </print>
+      <action>Update rope to untied</action>
+    </attack>
+
+  </creature>
+
+  <creature>
+    <name>cockroaches</name>
+    <status>alive</status>
+    <vulnerability>insecticide</vulnerability>
+
+    <trigger>
+      <type>single</type>
+
+      <condition>
+        <has>yes</has>
+        <object>knife</object>
+        <owner>inventory</owner>
+      </condition>
+      
+      <print>Suddenly, a swarm of cockroaches begins to emerge from the pile of dishes, spreading like a black sea across the countertops and spilling onto the floor. You must stop them before they threaten to bury you! Perhaps there is something in one of these cabinets that you could use.</print>
+    </trigger>
+
+    <attack>
+      <condition>
+        <has>yes</has>
+        <object>insecticide</object>
+        <owner>inventory</owner>
+      </condition>
+
+      <print>The once vibrant swarm of cockroaches is suddenly resigned to silence.</print>
+
+      <action>Update cockroaches to dead</action>
+    </attack>
+
+  </creature>
+
+  <creature>
+    <name>dog</name>
+    <status>quiet</status>
+
+    <vulnerability>rubber-duck</vulnerability>
+
+    <attack>
+      <condition>
+        <has>yes</has>
+        <object>rubber-duck</object>
+        <owner>inventory</owner>
+      </condition>
+
+      <print>The dog leaps in the air to catch the rubber-duck as you toss it in his direction. Satisfied, it lies down and proceeds to gnaw on the duck while wagging its tail.</print>
+      <action>Update dog to calm</action>
+    </attack>
+
+  </creature>
+
+
+<!-- User should not untie this girl; if they do, they are doomed -->
+
+  <creature>
+    <name>girl</name>
+    <status>trapped</status>
+
+    <trigger>
+      <type>single</type>
+      <condition>
+        <object>girl</object>
+        <status>free</status>
+      </condition>
+
+      <print>Suddenly, you hear a faucet turn on downstairs. The girl latches onto you and begins sobbing. She says there is a man in this house trying to kill her. She begs for you to drop your pocket-knife so that she can use it to defend herself.</print>
+      <!--<print>GAME OVER</print>-->
+    </trigger>
+
+    <trigger>
+      <type>single</type>
+      <condition>
+        <has>yes</has>
+        <object>pocket-knife</object>
+        <owner>Attic</owner>
+      </condition>
+      <condition>
+        <object>girl</object>
+        <status>free</status>
+      </condition>
+
+      <print>The girl gratefully bends down to grab the knife. As you turn to glance out the attic window, she lunges at you from behind and stabs you in the back. "I love him," she whispers, as you slowly loose consciousness...
+GAME OVER</print>
+      <!--<print>GAME OVER</print>-->
+      <action>Game over</action>
+    </trigger>
+
+    <trigger>
+      <type>permanent</type>
+      <command>attack girl with pocket-knife</command>
+      <condition>
+        <object>girl</object>
+        <status>angry</status>
+      </condition>
+
+      <print>As you lunge towards the girl, she overtakes you, slipping the knife out from your grip. You turn to flee, but the girl is too quick. She leaps onto your back and begins stabbing you repeatedly, screaming "How dare you steal his beautiful eyes!" The echo of her voice fades as you slowly loose consciousness...</print>
+      <!--<print>GAME OVER</print>-->
+      <action>Game over</action>
+    </trigger>
+
+    <attack>
+      <condition>
+        <object>girl</object>
+        <status>free</status>
+      </condition>
+
+      <print>The girl gasps as you drive the pocket-knife into her chest. She drops down to her knees and crumbles while blood begins to gush out from her breast.</print>
+      <action>Delete girl</action>
+    </attack>
+  </creature>
+
+  <creature>
+    <name>man</name>
+    <!-- Not sure what status he should be yet -->
+    <status>bathroom</status>
+
+    <vulnerability>bleach</vulnerability>
+    <vulnerability>dictionary</vulnerability>
+
+    <trigger>
+      <type>single</type>
+
+      <condition>
+        <object>girl</object>
+        <status>bedroom</status>
+      </condition>
+      
+      <print>Suddenly, you hear the door creak open. You turn your head to find a menacing man staring back at you.</print>
+      <action>Delete man</action>
+      <action>Add man to Bedroom</action>
+    </trigger>
+
+
+    <trigger>
+      <type>single</type>
+      <command>attack man with bleach</command>
+
+      <condition>
+        <has>yes</has>
+        <object>bleach</object>
+        <owner>inventory</owner>
+      </condition>
+      
+      <print>The man screams out as you throw the bleach in his eyes. Suddenly, the girl appears. She begins screaming and charging in your direction.</print>
+      <action>Update girl to angry</action>
+    </trigger>
+
+    <trigger>
+      <type>permanent</type>
+      <command>attack man with knife</command>
+
+      <condition>
+        <has>yes</has>
+        <object>knife</object>
+        <owner>inventory</owner>
+      </condition>
+      
+      <print>This kitchen knife is far too dull to do any damage.</print>
+    </trigger>
+
+    <trigger>
+      <type>permanent</type>
+      <command>attack man with saw</command>
+
+      <condition>
+        <has>yes</has>
+        <object>saw</object>
+        <owner>inventory</owner>
+      </condition>
+      
+      <print>The saw has run out of power, so it is not much of a weapon.</print>
+    </trigger>
+
+    <attack>
+      <condition>
+        <has>yes</has>
+        <object>dictionary</object>
+        <owner>inventory</owner>
+      </condition>
+
+      <print>You hear the man's neck snap. He falls to the ground with a thud and lies motionless. The girl falls to the ground and begins to sob as she clutches the man's limp body.</print>
+      <action>Update girl to sad</action>
+      <action>Delete man</action>
+    </attack>
+
+  </creature>
+
+
+
 </map>
