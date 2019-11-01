@@ -1,12 +1,11 @@
 import xml.etree.ElementTree as ET
 
-# Move conditionsMet() from trigger class to game class
-
 class game:
     def __init__(self,xmlFile):
         self.ui = UI()
         self.player = player()
         self.world = world(xmlFile)
+        self.isGameOver = False
 
     def getUi(self):
         return self.ui
@@ -14,6 +13,11 @@ class game:
         return self.player
     def getWorld(self):
         return self.world
+    def getIsGameOver(self):
+        return self.isGameOver
+
+    def gameOver(self):
+        self.isGameOver = True
 
     def conditionsMet(self,trigger,userCommand):
         # self.used set equal to true right after trigger activated
@@ -37,6 +41,7 @@ class game:
     def checkTriggers(self,command):
         commandOverwritten = False
         roomInventory = self.world.getRoomMap()[self.world.getLocation()].getInventory()
+        playerInventory = self.player.getInventory()
 
         # Check room triggers
         for trigger in roomInventory.getTriggers():
@@ -47,15 +52,15 @@ class game:
             if self.conditionsMet(trigger,command):
                 trigger.initiateTrigger(self)
 
-        # Check room item triggers        
-        for itemName in roomInventory.getItems():
+        # Check room/playerInventory item triggers
+        for itemName in (roomInventory.getItems()+playerInventory):
             item = self.world.getItemMap()[itemName]
             for trigger in item.getTriggers():
                 if trigger.overridesCommand(self,command):
                     commandOverwritten = True;
                 if self.conditionsMet(trigger,command):
                     trigger.initiateTrigger(self)
-                
+
         # Check room container triggers      
         for containerName in roomInventory.getContainers():
             container = self.world.getContainerMap()[containerName]
@@ -101,28 +106,43 @@ class game:
             # If secondWord is an item
             if secondWord in self.world.getItemMap():
                 item = self.world.getItemMap()[secondWord]
-
                 # Take item
                 if firstWord == 'take': # put item in inventory
-                    self.player.takeItem(item.getName())
-                    self.ui.printText(item.getName() + " added to inventory\n")
-
-                # Read item
-                elif firstWord == 'read':
-                    if item.getName() in self.player.getInventory():
-                        item.read(self.ui)                    
-                    else:
-                        self.ui.printText(item.getName() + " not in inventory\n")
-
-                # Drop item
-                elif firstWord == 'drop':
+                    canTake = False
                     roomInventory = self.world.getRoomMap()[self.world.getLocation()].getInventory()
-                    roomInventory.addItem(item.getName())
-                    self.player.dropItem(item.getName())
-                    self.ui.printText(item.getName() + " dropped\n")
+                    roomContainers = roomInventory.getContainers()
+                    containerMap = self.world.getContainerMap()
                     
+                    if item.getName() in roomInventory.getItems():
+                        roomInventory.delete(item.getName())
+                        canTake = True
+                    else:
+                        for containerName in roomContainers:
+                            if item.getName() in containerMap[containerName].getItems():
+                                containerMap[containerName].deleteItem(item.getName()) # DELETE ITEM FROM CONTAINER
+                                canTake = True
+                    if canTake:
+                        self.player.takeItem(item.getName())                    
+                        self.ui.printText(item.getName() + " added to inventory\n")
+                    else:
+                        self.ui.printText("Invalid command.\n") #item not in room???
+
+                elif secondWord in self.player.getInventory():
+                    # Read item
+                    if firstWord == 'read':
+                        if item.getName() in self.player.getInventory():
+                            item.read(self.ui)                    
+                        else:
+                            self.ui.printText(item.getName() + " not in inventory\n")
+
+                    # Drop item
+                    elif firstWord == 'drop':
+                        roomInventory = self.world.getRoomMap()[self.world.getLocation()].getInventory()
+                        roomInventory.addItem(item.getName())
+                        self.player.dropItem(item.getName())
+                        self.ui.printText(item.getName() + " dropped\n")
                 else:
-                    self.ui.printText("Invalid command\n")
+                    self.ui.printText("Invalid command\n")   
             
             elif firstWord == 'open':
                 roomType = self.world.getRoomMap()[self.world.getLocation()].getType()
@@ -150,7 +170,7 @@ class game:
                 if thirdWord in self.player.getInventory():
                     item = self.world.getItemMap()[thirdWord] 
                     self.ui.printText("You activate the " + item.getName() + "\n")
-                    item.turnon(self.world,self.ui)
+                    item.turnon(self)
                     
                 else:
                     self.ui.printText(thirdWord + " not in inventory\n")
@@ -462,13 +482,13 @@ class item:
         else:
             ui.printText(self.writing + "\n")
 
-    def turnon(self,world,ui):
+    def turnon(self,game):
         if self.actions == []:
-            ui.printText("This object cannot be turned on\n")
+            game.getUi().printText("This object cannot be turned on\n")
         else:
             for action in self.actions:
-                action.performAction(world)
-        ui.printText(self.print + "\n")
+                action.performAction(game)
+        game.getUi().printText(self.print + "\n")
 
     def changeStatusTo(self,newStatus):
         self.status = newStatus
@@ -592,10 +612,8 @@ class trigger:
                 self.type = child.text
             elif child.tag == "command":
                 self.commands.append(child.text)
-            elif child.tag == "print":
+            elif child.tag == "print": # issue with print for some reason
                 self.prints.append(child.text)
-
-            
             elif child.tag == "action":
                 self.actions.append(child.text)
             elif child.tag == "condition":
@@ -625,15 +643,16 @@ class trigger:
                 if command == userCommand and game.conditionsMet(self,userCommand):
                     return True
         return False
-    
+
+# COME BACK to me
     def initiateTrigger(self,game):
         self.used = True
         for actionName in self.actions:
             actionObject = action(actionName)
-            actionObject.performAction(game.getWorld())
+            actionObject.performAction(game)
         result = ""
-        for item in self.prints:
-            result += item + "\n"
+        for text in self.prints:
+            result += text + "\n"
         game.getUi().printText(result)
 
 class condition:
@@ -693,24 +712,39 @@ class action:
     def __init__(self,internalCommand):
         self.command = internalCommand.split()
         self.object = "" # Defined unless Game first word
+        self.objectType = "" # item, container, creature
         self.owner = "" # Only defined if Add first word
         if self.command[0] != "Game":
             self.object = self.command[1]
         if self.command[0] == "Add":
             self.owner = self.command[3]
 
-    def performAction(self,world):
+    def getObjectType(self,world):
+        if self.object in world.getItemMap():
+            return "item"
+        elif self.object in world.getContainerMap():
+            return "container"
+        elif self.object in world.getCreatureMap():
+            return "creature"
+        elif self.object in world.getRoomMap():
+            return "room"
+
+# Change to performAction(self,game)
+    def performAction(self,game):
         if self.validCommand(): 
             if self.command[0] == "Add":
-                self.getOwnerItems(world).append(self.object)               
+                if self.getObjectType(game.getWorld()) == "item":
+                    self.getOwnerItems(game.getWorld()).append(self.object)
+                else:
+                    self.getOwnerObjects(game.getWorld()).append(self.object)             
             elif self.command[0] == "Delete":
-                world.delete(self.object)
+                game.getWorld().delete(self.object)
             elif self.command[0] == "Update":
                 # Only items and containers can have statuses
-                self.getObjectMap(world)[self.object].changeStatusTo(self.command[3])
+                self.getObjectMap(game.getWorld())[self.object].changeStatusTo(self.command[3])
             elif self.command[0] == "Game":
-                # THIS is supposed to end while loop; ponder
-                return "Victory!"
+                game.gameOver()
+                #return "Victory!"
         
     # Checks for valid command structure
     def validCommand(self):
@@ -718,7 +752,7 @@ class action:
             if (self.command[0] == "Add" or self.command[0] == "Update") and self.command[2] == "to":
                 return True
         elif len(self.command) == 2:
-            if (self.command[0] == "Delete") or (self.command[0] == ["Game","over"]):
+            if (self.command[0] == "Delete") or (self.command == ["Game","over"]):
                 return True
         return False
 
@@ -738,11 +772,21 @@ class action:
         elif self.owner in world.getRoomMap():
             return world.getRoomMap()[self.owner].getInventory().getItems()
 
+    def getOwnerObjects(self,world):
+        # self.owner must be room
+        if self.getObjectType(world) == "container":
+            return world.getRoomMap()[self.owner].getInventory().getContainers()
+        else: # if not container than it is a creature
+            return world.getRoomMap()[self.owner].getInventory().getCreatures()
+
 def runGame():
-    kidnapGame = game("exGame.xml")
+    kidnapGame = game("game.xml")
     kidnapGame.getWorld().getRoomMap()[kidnapGame.getWorld().getLocation()].describe(kidnapGame.getUi())
 
-    while(kidnapGame.getWorld().getRoomMap()[kidnapGame.getWorld().getLocation()].getType() != "exit"):
+    while(kidnapGame.getWorld().getRoomMap()[kidnapGame.getWorld().getLocation()].getType() != "exit"
+          and not kidnapGame.getIsGameOver()):
+        #print("Game status: ",kidnapGame.getIsGameOver())
+        
         kidnapGame.getUi().printText("> ")
         command = kidnapGame.getUi().getText().lower()
         
